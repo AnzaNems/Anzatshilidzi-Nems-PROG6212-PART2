@@ -1,0 +1,48 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RaceDay.API.Data;
+using RaceDay.API.Dtos;
+using RaceDay.API.Models;
+using System.Security.Claims;
+
+namespace RaceDay.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class EnrolmentsController : ControllerBase
+{
+    private readonly ApplicationDbContext _db;
+    public EnrolmentsController(ApplicationDbContext db) => _db = db;
+    private int CurrentProfileId => int.Parse(User.FindFirstValue("ProfileId")!);
+
+    /// <summary>Enrols a participant. Participants only.</summary>
+    [Authorize(Roles = "Participant")]
+    [HttpPost("event/{eventId}")]
+    public async Task<IActionResult> Enrol(int eventId, EnrolmentDto dto)
+    {
+        if (!await _db.Categories.AnyAsync(c => c.Id == dto.CategoryId && c.EventId == eventId)) return NotFound("Category not found.");
+        if (await _db.Enrolments.AnyAsync(e => e.ParticipantId == CurrentProfileId && e.EventId == eventId && e.CategoryId == dto.CategoryId)) return Conflict("Already enrolled.");
+
+        var enr = new Enrolment { ParticipantId = CurrentProfileId, EventId = eventId, CategoryId = dto.CategoryId };
+        _db.Enrolments.Add(enr);
+        await _db.SaveChangesAsync();
+        return Ok(enr);
+    }
+
+    /// <summary>Gets my enrolments. Participants only.</summary>
+    [Authorize(Roles = "Participant")]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMyEnrolments() => Ok(await _db.Enrolments.Where(e => e.ParticipantId == CurrentProfileId).Include(e => e.Event).Include(e => e.Category).ToListAsync());
+
+    /// <summary>Gets event enrolments. Organisers only.</summary>
+    [Authorize(Roles = "Organiser")]
+    [HttpGet("event/{eventId}")]
+    public async Task<IActionResult> GetEventEnrolments(int eventId)
+    {
+        var ev = await _db.Events.FindAsync(eventId);
+        if (ev == null || ev.OrganiserId != CurrentProfileId) return NotFound();
+        return Ok(await _db.Enrolments.Where(e => e.EventId == eventId).Include(e => e.Participant).ToListAsync());
+    }
+}

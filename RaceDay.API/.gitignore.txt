@@ -1,0 +1,15 @@
+﻿# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Visual Studio
+.vs/
+*.vspscc
+*.vssscc
+
+# EF Core
+*.dbmdl
+*.ldf
+*.mdf
