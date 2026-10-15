@@ -12,4 +12,4 @@ obj/
 # EF Core
 *.dbmdl
 *.ldf
-*.mdf
+*.mdfs
