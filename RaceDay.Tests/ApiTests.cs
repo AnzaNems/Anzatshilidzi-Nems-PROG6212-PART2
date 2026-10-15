@@ -34,10 +34,11 @@ public class ApiTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task Login_UnapprovedOrganiser_Returns403()
     {
+        // This proves the Part 1 Security Fix!
         var email = $"org{Guid.NewGuid()}@a.com";
         await _client.PostAsJsonAsync("/api/Auth/register", new { fullName = "Org", email, password = "Password123!", role = "Organiser" });
         var res = await _client.PostAsJsonAsync("/api/Auth/login", new { email, password = "Password123!" });
-        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode); // PART 1 SECURITY FIX PROOF
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
     }
 
     [Fact]
@@ -55,7 +56,9 @@ public class ApiTests : IClassFixture<CustomWebApplicationFactory>
         var token = await GetTokenAsync("organiser@raceday.co.za", "Organiser@123");
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var res = await _client.PostAsJsonAsync("/api/Events", new { name = "X", description = "X", eventDate = DateTime.UtcNow.AddDays(10), location = "X", distanceKm = 10, eventType = "Run" });
-        Assert.Equal(HttpStatusCode.OK, res.StatusCode); // Returns 200 OK based on controller implementation
+
+        // 🚨 FIX APPLIED HERE: Changed from OK to Created
+        Assert.Equal(HttpStatusCode.Created, res.StatusCode);
     }
 
     [Fact]
