@@ -44,4 +44,4 @@ The GitHub Actions workflow automatically restores, builds, and tests the applic
 )
 
 ## YouTube Video Demonstration
-[PASTE_YOUR_UNLISTED_YOUTUBE_LINK_HERE]
+[[PASTE_YOUR_UNLISTED_YOUTUBE_LINK_HERE](https://youtu.be/9jWIwX1NZSg)]
