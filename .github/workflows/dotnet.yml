@@ -6,25 +6,37 @@ on:
   pull_request:
     branches: [ "**" ]
 
+env:
+  PROJECT_FILE: RaceDay.API.csproj   # ← EDIT: your .sln or .csproj file name
+
 jobs:
   build-and-test:
-
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Check out the code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Validate repository structure
+        run: |
+          for path in Data Dtos Models Services Migrations README.md; do
+            if [ -e "$path" ]; then
+              echo "OK: $path found"
+            else
+              echo "MISSING: $path"
+              exit 1
+            fi
+          done
+
+      - name: Set up .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore packages
+        run: dotnet restore "$RaceDay.API.csproj"
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build "$RaceDay.API.csproj" --no-restore --configuration Release
 
       - name: Run unit tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
+        run: dotnet test "$RaceDay.API.csproj" --no-build --configuration Release
